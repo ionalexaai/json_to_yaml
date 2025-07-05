@@ -20,4 +20,5 @@ COPY . .
 EXPOSE 5000
 
 # Run with Gunicorn, referencing app factory
-CMD ["gunicorn", "app:create_app()", "--bind", "0.0.0.0:5000", "--timeout", "90"]
+CMD ["gunicorn", "app:create_app()", "--bind", "0.0.0.0:5000", "--timeout", "90", "--access-logfile", "-"]
+
