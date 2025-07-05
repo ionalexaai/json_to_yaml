@@ -1,11 +1,13 @@
 from flask import Flask
 from flask_restful import Api
 from resources.json_to_yaml import JsonToYamlConverter
+from resources.yaml_to_json import YamlToJsonConverter
 
 app = Flask(__name__)
 api = Api(app)
 
 api.add_resource(JsonToYamlConverter, "/api/json_to_yaml")
+api.add_resource(YamlToJsonConverter, "/api/yaml_to_json")
 
 @app.route('/')
 def welcome():
