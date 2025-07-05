@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_restful import Api
-from routes import register_resources
+from app.routes import register_resources
 
 def create_app():
     """Application factory for creating Flask app instances"""
