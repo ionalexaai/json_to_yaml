@@ -30,77 +30,73 @@ class JsonFormatter(Resource):
             json_data = request.form.get("json_data")
 
             if not json_data:
-                # Fallback to raw body for API calls
                 json_data = request.data.decode("utf-8")
 
             parsed = json.loads(json_data)
             formatted_json = json.dumps(parsed, indent=2)
+            escaped_json = json.dumps(parsed)  # Compact version for JS embedding
 
-            if request.form.get("json_data") is not None:
-                # HTML with Copy to Clipboard button
-                response_html = f"""
-<html>
-<head>
-    <title>Formatted JSON</title>
-    <!-- Prism.js CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.css" rel="stylesheet" />
+            response_html = f"""
+            <html>
+            <head>
+                <title>Formatted JSON (Collapsible)</title>
+                <link href="https://cdn.jsdelivr.net/npm/json-viewer-js@latest/dist/json-viewer.min.css" rel="stylesheet">
+                <style>
+                    #json-renderer {{
+                        font-family: Consolas, monospace;
+                        background-color: #f4f4f4;
+                        padding: 10px;
+                        border: 1px solid #ddd;
+                        overflow-x: auto;
+                    }}
+                </style>
+            </head>
+            <body>
+                <h2>Formatted JSON (Collapsible Viewer)</h2>
+                <div id="json-renderer"></div>
+                <button onclick="copyToClipboard()">Copy to Clipboard</button>
+                <br><br>
+                <a href="">Back to form</a>
 
-    <style>
-    pre {{
-        background-color: #f4f4f4;
-        padding: 10px;
-        border: 1px solid #ddd;
-        overflow-x: auto;
-    }}
-    button {{
-        margin-top: 10px;
-    }}
-    </style>
-</head>
-<body>
-    <h2>Formatted JSON</h2>
-    <pre><code class="language-json" id="formatted_json">{formatted_json}</code></pre>
+                <script src="https://cdn.jsdelivr.net/npm/json-viewer-js@latest/dist/json-viewer.min.js"></script>
 
-    <button onclick="copyToClipboard()">Copy to Clipboard</button>
-    <br><br>
-    <a href="">Back to form</a>
+                <script>
+                    const jsonData = {escaped_json};
 
-    <!-- Prism.js Library -->
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+                    const viewer = new JSONViewer();
+                    document.getElementById("json-renderer").appendChild(viewer.getContainer());
+                    viewer.showJSON(jsonData, 1, 1);  // Collapse level 1 by default
 
-    <script>
-    function copyToClipboard() {{
-        const text = document.getElementById('formatted_json').innerText;
+                    function copyToClipboard() {{
+                        const text = JSON.stringify(jsonData, null, 2);
+                        if (navigator.clipboard && navigator.clipboard.writeText) {{
+                            navigator.clipboard.writeText(text).then(function() {{
+                                alert('Formatted JSON copied to clipboard!');
+                            }}).catch(function(err) {{
+                                alert('Failed to copy: ' + err);
+                            }});
+                        }} else {{
+                            const tempTextArea = document.createElement('textarea');
+                            tempTextArea.value = text;
+                            document.body.appendChild(tempTextArea);
+                            tempTextArea.select();
+                            try {{
+                                document.execCommand('copy');
+                                alert('Copied!');
+                            }} catch (err) {{
+                                alert('Copy failed: ' + err);
+                            }}
+                            document.body.removeChild(tempTextArea);
+                        }}
+                    }}
+                </script>
+            </body>
+            </html>
+            """
 
-        if (navigator.clipboard && navigator.clipboard.writeText) {{
-            navigator.clipboard.writeText(text).then(function() {{
-                alert('Formatted JSON copied to clipboard!');
-            }}).catch(function(err) {{
-                alert('Failed to copy: ' + err);
-            }});
-        }} else {{
-            const tempTextArea = document.createElement('textarea');
-            tempTextArea.value = text;
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            try {{
-                document.execCommand('copy');
-                alert('Formatted JSON copied to clipboard!');
-            }} catch (err) {{
-                alert('Fallback copy failed: ' + err);
-            }}
-            document.body.removeChild(tempTextArea);
-        }}
-    }}
-    </script>
-</body>
-</html>
-"""
-
-                response = make_response(response_html, 200)
-                response.mimetype = "text/html"
-                return response
+            response = make_response(response_html, 200)
+            response.mimetype = "text/html"
+            return response
 
 
             # API call response (JSON with proper mimetype)
