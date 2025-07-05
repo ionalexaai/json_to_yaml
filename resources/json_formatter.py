@@ -37,14 +37,27 @@ class JsonFormatter(Resource):
             formatted_json = json.dumps(parsed, indent=2)
 
             if request.form.get("json_data") is not None:
-                # If form-based request, show formatted result in browser
+                # HTML with Copy to Clipboard button
                 response_html = f"""
                 <html>
-                <head><title>Formatted JSON</title></head>
+                <head>
+                    <title>Formatted JSON</title>
+                    <script>
+                    function copyToClipboard() {{
+                        const text = document.getElementById('formatted_json').innerText;
+                        navigator.clipboard.writeText(text).then(function() {{
+                            alert('Formatted JSON copied to clipboard!');
+                        }}, function(err) {{
+                            alert('Failed to copy: ' + err);
+                        }});
+                    }}
+                    </script>
+                </head>
                 <body>
                     <h2>Formatted JSON</h2>
-                    <pre>{formatted_json}</pre>
-                    <br>
+                    <pre id="formatted_json">{formatted_json}</pre>
+                    <button onclick="copyToClipboard()">Copy to Clipboard</button>
+                    <br><br>
                     <a href="">Back to form</a>
                 </body>
                 </html>
@@ -52,6 +65,7 @@ class JsonFormatter(Resource):
                 response = make_response(response_html, 200)
                 response.mimetype = "text/html"
                 return response
+
 
             # API call response (JSON with proper mimetype)
             response = make_response(formatted_json, 200)
