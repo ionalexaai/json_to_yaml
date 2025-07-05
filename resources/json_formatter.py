@@ -55,6 +55,8 @@ class JsonFormatter(Resource):
                 </head>
                 <body>
                     <h2>Formatted JSON</h2>
+                    <a href="">Back to form</a>
+                    <button onclick="copyToClipboard()">Copy to Clipboard</button>
                     <pre id="formatted_json">{formatted_json}</pre>
                     <button onclick="copyToClipboard()">Copy to Clipboard</button>
                     <br><br>
