@@ -37,62 +37,51 @@ class JsonFormatter(Resource):
             escaped_json = json.dumps(parsed)  # Compact version for JS embedding
 
             response_html = f"""
-            <html>
-            <head>
-                <title>Formatted JSON (Collapsible)</title>
-                <link href="https://cdn.jsdelivr.net/npm/json-viewer-js@latest/dist/json-viewer.min.css" rel="stylesheet">
-                <style>
-                    #json-renderer {{
-                        font-family: Consolas, monospace;
-                        background-color: #f4f4f4;
-                        padding: 10px;
-                        border: 1px solid #ddd;
-                        overflow-x: auto;
-                    }}
-                </style>
-            </head>
-            <body>
-                <h2>Formatted JSON (Collapsible Viewer)</h2>
-                <div id="json-renderer"></div>
-                <button onclick="copyToClipboard()">Copy to Clipboard</button>
-                <br><br>
-                <a href="">Back to form</a>
+<html>
+<head>
+  <title>Formatted JSON (Collapsible)</title>
+  <button onclick="copyJson()">Copy JSON</button><br><br>
+  <a href="">Back to form</a>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery-jsonview/1.2.3/jquery.jsonview.min.css" rel="stylesheet" />
+  <style>
+    #json-renderer {{ margin: 10px; font-family: monospace; }}
+  </style>
+</head>
+<body>
+  <h2>Formatted JSON Viewer</h2>
+  <div id="json-renderer"></div>
+  <button onclick="copyJson()">Copy JSON</button><br><br>
+  <a href="">Back to form</a>
 
-                <script src="https://cdn.jsdelivr.net/npm/json-viewer-js@latest/dist/json-viewer.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-jsonview/1.2.3/jquery.jsonview.min.js"></script>
 
-                <script>
-                    const jsonData = {escaped_json};
+  <script>
+    const data = {escaped_json};
+    $("#json-renderer").JSONView(data, {{
+      collapsed: true,
+      nl2br: false,
+      recursive_collapser: true
+    }});
+    function copyJson() {{
+      const txt = JSON.stringify(data, null, 2);
+      if (navigator.clipboard && navigator.clipboard.writeText) {{
+        navigator.clipboard.writeText(txt).then(() => alert("Copied!"));
+      }} else {{
+        const ta = document.createElement('textarea');
+        ta.value = txt;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        alert("Copied!");
+      }}
+    }}
+  </script>
+</body>
+</html>
+"""
 
-                    const viewer = new JSONViewer();
-                    document.getElementById("json-renderer").appendChild(viewer.getContainer());
-                    viewer.showJSON(jsonData, 1, 1);  // Collapse level 1 by default
-
-                    function copyToClipboard() {{
-                        const text = JSON.stringify(jsonData, null, 2);
-                        if (navigator.clipboard && navigator.clipboard.writeText) {{
-                            navigator.clipboard.writeText(text).then(function() {{
-                                alert('Formatted JSON copied to clipboard!');
-                            }}).catch(function(err) {{
-                                alert('Failed to copy: ' + err);
-                            }});
-                        }} else {{
-                            const tempTextArea = document.createElement('textarea');
-                            tempTextArea.value = text;
-                            document.body.appendChild(tempTextArea);
-                            tempTextArea.select();
-                            try {{
-                                document.execCommand('copy');
-                                alert('Copied!');
-                            }} catch (err) {{
-                                alert('Copy failed: ' + err);
-                            }}
-                            document.body.removeChild(tempTextArea);
-                        }}
-                    }}
-                </script>
-            </body>
-            </html>
-            """
 
             response = make_response(response_html, 200)
             response.mimetype = "text/html"
