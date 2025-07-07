@@ -110,6 +110,7 @@ finalize() {
 # Main execution
 install_nginx
 install_certbot
+finalize
 
 read -rp "Do you want to add a domain to NGINX and Certbot? (y/n): " RESPONSE
 if [[ "$RESPONSE" =~ ^[Yy]$ ]]; then
